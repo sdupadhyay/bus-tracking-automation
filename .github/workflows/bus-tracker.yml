@@ -1,0 +1,32 @@
+name: Bus Tracker Automation
+
+on:
+  schedule:
+    # Every 5 mins from 02:00 to 14:59 UTC
+    - cron: "*/5 2-14 * * *"
+    # Run at 15:00 UTC (8:30 PM IST) only
+    - cron: "0 15 * * *"
+  workflow_dispatch: # Allows you to run it manually for testing
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          BUS_TRACKING_API: ${{ secrets.BUS_TRACKING_API }}
+          NODE_TLS_REJECT_UNAUTHORIZED: "0" # Disables SSL verification for this run
+        run: node index.js
