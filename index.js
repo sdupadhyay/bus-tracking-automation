@@ -1,12 +1,16 @@
 const { createClient } = require("@supabase/supabase-js");
 require("dotenv").config(); // or import 'dotenv/config' if you're using ES6
-
+const cron = require("node-cron");
+const express = require("express");
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const supabase = createClient(
 	process.env.SUPABASE_URL,
 	process.env.SUPABASE_KEY,
 );
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.get("/health", (req, res) => res.send("OK"));
 async function Track(busNo) {
 	try {
 		const res = await fetch(`${process.env.BUS_TRACKING_API}${busNo}`);
@@ -31,5 +35,12 @@ async function Track(busNo) {
 		console.log("ERROR", error);
 	}
 }
-Track("GJ16AY4712");
-Track("GJ16AY4026");
+
+// Format: (minute) (hour) (day of month) (month) (day of week)
+cron.schedule("*/5 08-19 * * *", async () => {
+	await Track("GJ16AY4712");
+	await Track("GJ16AY4026");
+});
+app.listen(PORT, () => {
+	console.log(`Server is running on port ${PORT}`);
+});
