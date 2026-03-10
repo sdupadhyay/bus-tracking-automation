@@ -11,6 +11,27 @@ const supabase = createClient(
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.get("/health", (req, res) => res.send("OK"));
+app.get("/track/:busNo", async (req, res) => {
+	const { busNo } = req.params;
+	try {
+		const response = await fetch(`${process.env.BUS_TRACKING_API}${busNo}`);
+		const data = await response.json();
+		const busData = {
+			lattitude: data[0]?.lattitude,
+			longitude: data[0]?.longitude,
+			receivedDate: data[0]?.receivedDate,
+			vehicleNo: data[0]?.vehicleNo,
+			speed: data[0]?.speed,
+			routename: data[0]?.routename,
+			conductorname: data[0]?.conductorname,
+			conductornumber: data[0]?.conductornumber,
+			depotname: data[0]?.depotname,
+		};
+		return res.json(busData);
+	} catch (error) {
+		return res.status(500).json({ error: error.message });
+	}
+});
 async function Track(busNo) {
 	try {
 		const res = await fetch(`${process.env.BUS_TRACKING_API}${busNo}`);
@@ -41,6 +62,6 @@ cron.schedule("*/5 08-19 * * *", async () => {
 	await Track("GJ16AY4712");
 	await Track("GJ16AY4026");
 });
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
 	console.log(`Server is running on port ${PORT}`);
 });
